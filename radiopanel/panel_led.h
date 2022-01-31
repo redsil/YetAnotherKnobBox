@@ -5,7 +5,8 @@ class PanelLed {
  private:
   const int NUM_PIXELS = 8;
   Adafruit_NeoPixel m_strip;
-
+  boolean right_on = false;
+  boolean left_on = false;
   
  public:
   PanelLed(int data_pin, int brightness) {
@@ -36,14 +37,49 @@ class PanelLed {
     m_strip.rainbow(a);
   }
 
+  void setRight() {
+    int hue =  32 << 8; // Yellow
+    uint32_t color = m_strip.gamma32(m_strip.ColorHSV(hue)); // hue . RGB
+    m_strip.setPixelColor(4, color); // Set pixel 'c' to value 'color'
+    right_on = true;
+  }
+  void setLeft() {
+    int hue =  32 << 8; // Yellow
+    uint32_t color = m_strip.gamma32(m_strip.ColorHSV(hue)); // hue . RGB
+    m_strip.setPixelColor(3, color); // Set pixel 'c' to value 'color'
+    left_on = true;
+  }
+  void clearRight() {
+    if (right_on) {
+      m_strip.setPixelColor(4, 0,0,0); // Set pixel 'c' to value 'color'
+      right_on = false;
+    }
+    
+  }
+  void clearLeft() {
+    if (left_on) {
+      m_strip.setPixelColor(3, 0,0,0); // Set pixel 'c' to value 'color'
+      left_on = false;
+    }
+  }
+
+  boolean leftOn() {
+    return left_on;
+  }
+  boolean rightOn() {
+    return right_on;
+  }
+  
   void show_mode(int mode) {
     int hue = 0; // RED
     m_strip.clear();
     if (mode == 0 || mode == 5) {
-      hue = (65535/3)*2; // GREEN
+      hue = 160 << 8;
+      //           hue = 0x(65535/3)*2; // GREEN
     }
     else if (mode == 1 || mode == 4) {
-      hue = 65535/3; // BLUE
+      hue = 90 << 8;
+      //           hue = 65535/3; // BLUE
     }
     uint32_t color = m_strip.gamma32(m_strip.ColorHSV(hue)); // hue . RGB
     int led_offset = (mode > 2) ? 2 : 0;
