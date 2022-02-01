@@ -2,7 +2,7 @@
 #include "knob.h"
 
 
-enum MODE { MODE_NONE, MODE_1, MODE_2, MODE_3, MODE_4, MODE_5, MODE_6, BRIGHTNESS_ADJUST };
+enum MODE { MODE_NONE, MODE_1, MODE_2, MODE_3, MODE_4, MODE_5, MODE_6, BRIGHTNESS_ADJUST, SET_TIMER };
 
 
 #include <BleGamepad.h> 
@@ -66,6 +66,9 @@ boolean g_release_mask[NUM_BUTTONS];
 
 MODE current_mode = MODE_NONE;
 MODE prev_mode = MODE_NONE;
+MODE long_mode = MODE_NONE;
+
+int g_timer_value = 0;
 
 
 void setup(){
@@ -92,10 +95,9 @@ void setup(){
   knob2.init();
   
   strip.begin();
-  strip.rainbow(10);             // Flowing rainbow cycle along the whole strip
+  //  strip.rainbow(10);             // Flowing rainbow cycle along the whole strip
   strip.show();
 
-  
 }
 
 int button_hold_count = 0;
@@ -117,9 +119,17 @@ void loop(){
 
     // Set a new mode if button released
     if (mode_button_changed < 0) {
-      if (current_mode == BRIGHTNESS_ADJUST) {
+      if (current_mode > MODE_6) {
+	if (current_mode == SET_TIMER) {
+	  // Start timer on release
+	  strip.startTimer();
+	}
+	
+	MODE tmp_mode = current_mode;
 	current_mode = prev_mode;
-	prev_mode = BRIGHTNESS_ADJUST;
+	prev_mode = tmp_mode;
+	strip.clear();
+
       }
       else {
 	int mode_offset = abs(mode_button_changed) - 1;
@@ -140,21 +150,27 @@ void loop(){
       // disable long press waiting
       button_hold_count = 0;
     }
+
     // Start long press detection on button press
     else if (mode_button_changed > 0) {
       button_hold_count = 20;
+      if (mode_button_changed == 1) {
+	long_mode = BRIGHTNESS_ADJUST;
+      }
+      if (mode_button_changed == 3) {
+	long_mode = SET_TIMER;
+      }
     }
 
-    // Long press detection , move to brightness adjust modea
+    // Long press detection , change mode after hold count
     if (button_hold_count) {
       button_hold_count--;
 
       if (button_hold_count <= 0) {
 	prev_mode = current_mode;
-	current_mode = BRIGHTNESS_ADJUST;
+	current_mode = long_mode;
       }
     }
-
 
     // reset left/right blinker if it is currently on
     // Gets set during process_encoder if the knob is being moved
@@ -168,12 +184,23 @@ void loop(){
     if (process_encoder(knob1,0,bleGamepad)) encoder_movement = true;
     if (process_encoder(knob2,NUM_BUTTONS_PER_KNOB,bleGamepad)) encoder_movement = true;
 
+    
     update_controller = encoder_movement || update_controller;
   
     if (current_mode >= MODE_1 && current_mode <= MODE_6) {
       if (update_controller) {
 	print_debug(bleGamepad);
 	if (bleGamepad.isConnected()) bleGamepad.sendReport();
+      }
+      if (bleGamepad.isPressed(g_button_index[1]) || bleGamepad.isPressed(g_button_index[6]) ||
+	  bleGamepad.isPressed(g_button_index[12]) || bleGamepad.isPressed(g_button_index[17]) ) {
+	strip.setLeft();
+	strip.show();
+      }
+      if (bleGamepad.isPressed(g_button_index[2]) || bleGamepad.isPressed(g_button_index[7]) ||
+	  bleGamepad.isPressed(g_button_index[13]) || bleGamepad.isPressed(g_button_index[18])) {
+	strip.setRight();
+	strip.show();
       }
     }
     else if (current_mode == BRIGHTNESS_ADJUST) {
@@ -186,12 +213,27 @@ void loop(){
       }
       strip.show();
     }
-  }  
+    else if (current_mode == SET_TIMER) {
+      if (bleGamepad.isPressed(g_button_index[12])) {
+	if (g_timer_value >= 5) g_timer_value -= 5;
+      }
+      if (bleGamepad.isPressed(g_button_index[13])) {
+	if (g_timer_value < (strip.getMaxTimerValue() - 5)) g_timer_value += 5;
+      }
+      strip.setTimer(g_timer_value);
+      strip.showTimer();
+    }  
+  }    
+
+  // don't run the timer while we are setting it
+  if (current_mode != SET_TIMER) {
+    strip.runTimer();
+  }
 
   // Flip betweewn pressing and releasing buttons
   release_cycle = !release_cycle;
   delay(50);
-}   
+}
 
 void print_debug(BleGamepad &gp) {
   Serial.printf("DEBUG Gamepad ");
@@ -245,8 +287,6 @@ boolean process_encoder(DualEncoderKnob &knob, int gamepad_button_offset, BleGam
       Serial.println();
       gp.press(g_button_index[offset]);
       g_release_mask[offset] = true;
-      strip.setLeft();
-      strip.show();
       is_change = true;
     }
     offset++;
@@ -255,8 +295,6 @@ boolean process_encoder(DualEncoderKnob &knob, int gamepad_button_offset, BleGam
       Serial.println();
       gp.press(g_button_index[offset]);
       g_release_mask[offset] = true;
-      strip.setRight();
-      strip.show();
       is_change = true;
     }
     offset++;
