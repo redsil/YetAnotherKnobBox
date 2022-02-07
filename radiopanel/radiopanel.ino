@@ -16,7 +16,17 @@ enum MODE { MODE_NONE, MODE_1, MODE_2, MODE_3, MODE_4, MODE_5, MODE_6, BRIGHTNES
 #define NUM_BUTTONS 32
 
 #define NUM_MODE_PINS 6
-#define NUM_BUTTONS_PER_KNOB 11
+#define NUM_BUTTONS_PER_KNOB 12
+#define KNOB1_BUTTON_OFFSET 0
+#define KNOB2_BUTTON_OFFSET NUM_BUTTONS_PER_KNOB
+
+
+#define ENCODER1_DIR_BUTTON_OFFSET 2
+#define ENCODER1_VAL_BUTTON_OFFSET ENCODER1_DIR_BUTTON_OFFSET + 2
+#define ENCODER2_DIR_BUTTON_OFFSET ENCODER1_VAL_BUTTON_OFFSET + 3
+#define ENCODER2_VAL_BUTTON_OFFSET ENCODER2_DIR_BUTTON_OFFSET + 2
+
+
 #define MODE_BUTTON_OFFSET NUM_BUTTONS_PER_KNOB * 2
 
 BleGamepad bleGamepad("KnobPanel","Rpierce",90);
@@ -182,8 +192,8 @@ void loop(){
     }
     
     boolean encoder_movement = true;
-    if (process_encoder(knob1,0,bleGamepad)) encoder_movement = true;
-    if (process_encoder(knob2,NUM_BUTTONS_PER_KNOB,bleGamepad)) encoder_movement = true;
+    if (process_encoder(knob1,KNOB1_BUTTON_OFFSET,bleGamepad)) encoder_movement = true;
+    if (process_encoder(knob2,KNOB2_BUTTON_OFFSET,bleGamepad)) encoder_movement = true;
 
     
     update_controller = encoder_movement || update_controller;
@@ -193,32 +203,32 @@ void loop(){
 	print_debug(bleGamepad);
 	if (bleGamepad.isConnected()) bleGamepad.sendReport();
       }
-      if (bleGamepad.isPressed(g_button_index[1]) || bleGamepad.isPressed(g_button_index[6]) ||
-	  bleGamepad.isPressed(g_button_index[12]) || bleGamepad.isPressed(g_button_index[17]) ) {
+      if (bleGamepad.isPressed(g_button_index[KNOB1_BUTTON_OFFSET + ENCODER1_DIR_BUTTON_OFFSET]) || bleGamepad.isPressed(g_button_index[KNOB1_BUTTON_OFFSET + ENCODER2_DIR_BUTTON_OFFSET]) ||
+	  bleGamepad.isPressed(g_button_index[KNOB2_BUTTON_OFFSET + ENCODER1_DIR_BUTTON_OFFSET]) || bleGamepad.isPressed(g_button_index[KNOB2_BUTTON_OFFSET + ENCODER2_DIR_BUTTON_OFFSET])) {
 	strip.setLeft();
 	strip.show();
       }
-      if (bleGamepad.isPressed(g_button_index[2]) || bleGamepad.isPressed(g_button_index[7]) ||
-	  bleGamepad.isPressed(g_button_index[13]) || bleGamepad.isPressed(g_button_index[18])) {
+      if (bleGamepad.isPressed(g_button_index[KNOB1_BUTTON_OFFSET + ENCODER1_DIR_BUTTON_OFFSET + 1]) || bleGamepad.isPressed(g_button_index[KNOB1_BUTTON_OFFSET + ENCODER2_DIR_BUTTON_OFFSET + 1]) ||
+	  bleGamepad.isPressed(g_button_index[KNOB2_BUTTON_OFFSET + ENCODER1_DIR_BUTTON_OFFSET + 1]) || bleGamepad.isPressed(g_button_index[KNOB2_BUTTON_OFFSET + ENCODER2_DIR_BUTTON_OFFSET + 1])) {
 	strip.setRight();
 	strip.show();
       }
     }
     else if (current_mode == BRIGHTNESS_ADJUST) {
       strip.rainbow(100 << 8);
-      if (bleGamepad.isPressed(g_button_index[12])) {
+      if (bleGamepad.isPressed(g_button_index[KNOB2_BUTTON_OFFSET + ENCODER1_DIR_BUTTON_OFFSET])) {
 	if (strip.getBrightness() > 10) strip.setBrightness(strip.getBrightness() - 10);
       }
-      if (bleGamepad.isPressed(g_button_index[13])) {
+      if (bleGamepad.isPressed(g_button_index[KNOB2_BUTTON_OFFSET + ENCODER1_DIR_BUTTON_OFFSET + 1])) {
 	if (strip.getBrightness() < 245) strip.setBrightness(strip.getBrightness() + 10);
       }
       strip.show();
     }
     else if (current_mode == SET_TIMER) {
-      if (bleGamepad.isPressed(g_button_index[12])) {
+      if (bleGamepad.isPressed(g_button_index[KNOB2_BUTTON_OFFSET + ENCODER1_DIR_BUTTON_OFFSET])) {
 	if (g_timer_value >= 5) g_timer_value -= 5;
       }
-      if (bleGamepad.isPressed(g_button_index[13])) {
+      if (bleGamepad.isPressed(g_button_index[KNOB2_BUTTON_OFFSET + ENCODER1_DIR_BUTTON_OFFSET + 1])) {
 	if (g_timer_value < (strip.getMaxTimerValue() - 5)) g_timer_value += 5;
       }
       strip.setTimer(g_timer_value);
@@ -260,31 +270,46 @@ boolean process_encoder(DualEncoderKnob &knob, int gamepad_button_offset, BleGam
   // three buttons are ignored
   boolean is_change = false;
 
-  if (knob.buttonPressed()) {
-    if (!gp.isPressed(g_button_index[gamepad_button_offset])) {
-      gp.press(g_button_index[gamepad_button_offset]);
-      g_release_mask[gamepad_button_offset] = false;
+  // Short and long presses of button trigger two differetn gamepad buttons upon release
+  if (!knob.buttonPressed()) {
+    if (knob.timeSincePressed() > 0) {
+      if (knob.timeSincePressed() > 1000) {
+	// long press
+	gp.press(g_button_index[gamepad_button_offset+1]);
+	g_release_mask[gamepad_button_offset+1] = true;
+      }
+      else {
+	// short press
+	gp.press(g_button_index[gamepad_button_offset]);
+	g_release_mask[gamepad_button_offset] = true;
+      }
       is_change = true;
+      knob.resetPressed();
     }
   }
+  // button pressed
   else {
-    if (gp.isPressed(g_button_index[gamepad_button_offset])) {
-      g_release_mask[gamepad_button_offset] = true;
-      is_change = true;
+    if (knob.timeSincePressed() == 0) {
+      knob.setPressed();
     }
-  }    
+  }
+	    
 
-  int offset = gamepad_button_offset+1;
-  for (int knob_id = 0; knob_id < 2; knob_id++) {
-    
-    int value = knob.getChange(knob_id);
+  int knob_offset[2];
+  knob_offset[0] = gamepad_button_offset + ENCODER1_DIR_BUTTON_OFFSET;
+  knob_offset[1] = gamepad_button_offset + ENCODER2_DIR_BUTTON_OFFSET;
+  
+  for (int encoder_id = 0; encoder_id < 2; encoder_id++) {
+    int offset = knob_offset[encoder_id];
+      
+    int value = knob.getChange(encoder_id);
     int magnitude = abs(value);
     if (value != 0) {
-      knob.setLastCount(knob_id);
+      knob.setLastCount(encoder_id);
     }
     
     if (value < 0) {
-      Serial.printf("DEBUG %d: count = %d change = %d ",knob_id,knob.getCount(knob_id),value);
+      Serial.printf("DEBUG %d: count = %d change = %d ",encoder_id,knob.getCount(encoder_id),value);
       Serial.println();
       gp.press(g_button_index[offset]);
       g_release_mask[offset] = true;
@@ -292,7 +317,7 @@ boolean process_encoder(DualEncoderKnob &knob, int gamepad_button_offset, BleGam
     }
     offset++;
     if (value > 0) {
-      Serial.printf("DEBUG %d: count = %d change = %d ",knob_id,knob.getCount(knob_id),value);
+      Serial.printf("DEBUG %d: count = %d change = %d ",encoder_id,knob.getCount(encoder_id),value);
       Serial.println();
       gp.press(g_button_index[offset]);
       g_release_mask[offset] = true;

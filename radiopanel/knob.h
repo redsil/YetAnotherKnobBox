@@ -9,6 +9,9 @@ class DualEncoderKnob {
 
   int m_pin_button;
   int m_last_count[2] = { 0, 0};
+
+  unsigned long m_pressed_time = 0;
+  
   int m_pin_A;
   int m_pin_B;
   int m_pin_a;
@@ -68,6 +71,24 @@ class DualEncoderKnob {
 
   }
 
+  // Store previous pressed state
+  void setPressed() {
+    m_pressed_time = millis();
+  }
+
+  void resetPressed() {
+    m_pressed_time = 0;
+  }
+
+  int timeSincePressed() {
+    if (m_pressed_time == 0) {
+      return(0);
+    }
+    else {
+      return(millis()-m_pressed_time);
+    }
+  }
+  
   void setLastCount(int encoder) {
     m_last_count[encoder] = getCount(encoder);
   }
