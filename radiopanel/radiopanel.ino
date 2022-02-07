@@ -54,6 +54,7 @@ int g_button_index[NUM_BUTTONS] = {
   BUTTON_22,
   BUTTON_23,
   BUTTON_24,
+  BUTTON_25,
   BUTTON_26,
   BUTTON_27,
   BUTTON_28,
@@ -300,17 +301,18 @@ boolean process_encoder(DualEncoderKnob &knob, int gamepad_button_offset, BleGam
     offset++;
 
     if (magnitude > 8) magnitude = 8;
-      // Big Endian
-    if (magnitude && ((magnitude-1) & 0x4)) gp.press(g_button_index[offset]);
-    g_release_mask[offset] = true;
-    offset++;
-    if (magnitude && ((magnitude-1) & 0x2)) gp.press(g_button_index[offset]);
-    g_release_mask[offset] = true;
-    offset++;
-    if (magnitude && ((magnitude-1) & 0x1)) gp.press(g_button_index[offset]);
-    g_release_mask[offset] = true;
-    offset++;
-    
+
+    // Big Endian
+    // Set binary encode value in 3 buttons
+    for (int index = 2; index >= 0; index--) {
+      if (magnitude && ((magnitude-1) & (0x1 << index)) ) {
+	gp.press(g_button_index[offset]);
+      } else {
+	gp.release(g_button_index[offset]);
+      }
+      g_release_mask[offset] = false;
+      offset++;
+    }
   }
   return(is_change);
 }

@@ -34,6 +34,7 @@ class DualEncoderKnob {
     m_encoder1.useInternalWeakPullResistors = UP;
     
     m_encoder1.attachHalfQuad(m_pin_A,m_pin_B);
+    m_encoder1.setFilter(500);  // extra debouncing
     m_encoder1.clearCount();
 
     pinMode(m_pin_a,INPUT_PULLUP);
@@ -42,6 +43,7 @@ class DualEncoderKnob {
     m_encoder2.useInternalWeakPullResistors = UP;
     
     m_encoder2.attachHalfQuad(m_pin_a,m_pin_b);
+    m_encoder2.setFilter(500);  // extra debouncing
     m_encoder2.clearCount();
 
     m_last_count[0] = getCount(0);
