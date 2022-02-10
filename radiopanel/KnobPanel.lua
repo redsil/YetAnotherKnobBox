@@ -1,0 +1,338 @@
+local KnobPanel = {}
+
+function KnobPanel.fsuipc_send_control(control)
+   return(
+      function(value)
+	 ipc.log("Sending control" .. control)
+	 ipc.control(control)
+      end
+   )
+end
+
+function KnobPanel.fsuipc_send_control_fastslow(control_fast,control_slow,threshold)
+   return(
+      function(value)
+	 if (value > threshold) then
+	    ipc.log("Sending control" .. control_fast)
+	    ipc.control(control_fast)
+	 else
+	    ipc.log("Sending control" .. control_slow)
+	    ipc.control(control_slow)
+	 end
+      end
+   )
+end
+
+-- ################################################################################
+-- Configure phsyical device to event mappings
+-- ################################################################################
+local current_mode = 1
+local prev_button_mask = 0
+local button_offsets = { modes = 24,
+			 knob_buttons = { 0,12 },
+			 encoders = { 2,7,14,19 }
+}
+local button_masks = { modes = logic.Shl(0x3f,button_offsets.modes),
+		       knob_buttons = { logic.Shl(0x3,button_offsets.knob_buttons[1]),
+					logic.Shl(0x3,button_offsets.knob_buttons[2])
+		       },
+		       encoder_values = { logic.Shl(0x1c,button_offsets.encoders[1]),
+					   logic.Shl(0x1c,button_offsets.encoders[2]),
+					   logic.Shl(0x1c,button_offsets.encoders[3]),
+					   logic.Shl(0x1c,button_offsets.encoders[4])
+		       },
+		       encoder_directions = { logic.Shl(0x3,button_offsets.encoders[1]),
+					      logic.Shl(0x3,button_offsets.encoders[2]),
+					      logic.Shl(0x3,button_offsets.encoders[3]),
+					      logic.Shl(0x3,button_offsets.encoders[4])
+		       }
+		     }
+local msfs_event_mapping = { 
+   -- MODE 1
+   {
+      button1 = KnobPanel.fsuipc_send_control(66372),       -- 66372   COM_STBY_RADIO_SWAP
+      button1L = KnobPanel.fsuipc_send_control(66372),       -- 66372   COM_STBY_RADIO_SWAP
+      button2 = KnobPanel.fsuipc_send_control(66444),       -- 66444   COM2_RADIO_SWAP
+      button2L = KnobPanel.fsuipc_send_control(66444),       -- 66444   COM2_RADIO_SWAP
+      encoders={
+	 { KnobPanel.fsuipc_send_control(65636),          -- 65636   COM_RADIO_WHOLE_DEC
+	   KnobPanel.fsuipc_send_control(65637)           -- 65637   COM_RADIO_WHOLE_INC
+	 },			                
+	 { KnobPanel.fsuipc_send_control(66434),          -- 66434   COM_RADIO_FRACT_DEC_CARRY
+	   KnobPanel.fsuipc_send_control(66435)           -- 66435   COM_RADIO_FRACT_INC_CARRY
+	 },
+	 { KnobPanel.fsuipc_send_control(66436),          -- 66436   COM2_RADIO_WHOLE_DEC
+	   KnobPanel.fsuipc_send_control(66437)           -- 66437   COM2_RADIO_WHOLE_INC
+	 },			                
+	 { KnobPanel.fsuipc_send_control(66439),          -- 66439   COM2_RADIO_FRACT_DEC_CARRY
+	   KnobPanel.fsuipc_send_control(66441)           -- 66441   COM2_RADIO_FRACT_INC_CARRY
+	 }
+      }
+   },
+   -- MODE 2
+   {
+      button1=KnobPanel.fsuipc_send_control(66448),      -- 66448   NAV1_RADIO_SWAP
+      button1L=KnobPanel.fsuipc_send_control(66448),      -- 66448   NAV1_RADIO_SWAP
+      button2=KnobPanel.fsuipc_send_control(66452),      -- 66452   NAV2_RADIO_SWAP
+      button2L=KnobPanel.fsuipc_send_control(66452),      -- 66452   NAV2_RADIO_SWAP
+      encoders={			    
+	 { KnobPanel.fsuipc_send_control(65640),         -- 65640   NAV1_RADIO_WHOLE_DEC
+	   KnobPanel.fsuipc_send_control(65641)          -- 65641   NAV1_RADIO_WHOLE_INC
+	 },			            
+	 { KnobPanel.fsuipc_send_control(66445),         -- 66445   NAV1_RADIO_FRACT_DEC_CARRY
+	   KnobPanel.fsuipc_send_control(66446)          -- 66446   NAV1_RADIO_FRACT_INC_CARRY
+	 },				       
+	 { KnobPanel.fsuipc_send_control(65644),         -- 65644   NAV2_RADIO_WHOLE_DEC
+	   KnobPanel.fsuipc_send_control(65645)          -- 65645   NAV2_RADIO_WHOLE_INC
+	 },			            
+	 { KnobPanel.fsuipc_send_control(66449),         -- 66449   NAV2_RADIO_FRACT_DEC_CARRY
+	   KnobPanel.fsuipc_send_control(66450)          -- 66450   NAV2_RADIO_FRACT_INC_CARRY
+	 }
+      }
+   },
+   -- MODE 3
+   {
+      button1=function() end,                            -- xs???   FLC
+      button1L=KnobPanel.fsuipc_send_control(67231),              -- 67231   AP_MANAGED_SPEED_IN_MACH_TOGGLE (LONG PRESS)
+      button2=KnobPanel.fsuipc_send_control(66100),                -- 66100   AP_VS_ON
+      button2L=KnobPanel.fsuipc_send_control(67231),               -- 67231   AP_MANAGED_SPEED_IN_MACH_TOGGLE (LONG PRESS)
+      encoders={
+	 { KnobPanel.fsuipc_send_control(1020),                    -- 1020    Ap Spd Var Dec Fast (10)
+	   KnobPanel.fsuipc_send_control(1021)                     -- 1021    Ap Spd Var Inc Fast (+10)
+	 },			          
+	 { KnobPanel.fsuipc_send_control(65897),                   -- 65897   AP_SPD_VAR_DEC
+	   KnobPanel.fsuipc_send_control(65996)                    -- 65896   AP_SPD_VAR_INC
+	 },				     
+	 { KnobPanel.fsuipc_send_control_fastslow(1022,56895,3),   -- 65895   AP_VS_VAR_DEC,	   --    1022 Ap Vs Var Dec Fast (1000)
+	   KnobPanel.fsuipc_send_control_fastslow(1023,65984,3)    -- 65894   AP_VS_VAR_INC,    --    1023 Ap Vs Var Inc Fast (+1000)
+	 },
+	 { KnobPanel.fsuipc_send_control_fastslow(1016,65892,3),   -- 65892   AP_ALT_VAR_INC   --    1016 Ap Alt Var Dec Fast (1000)
+	   KnobPanel.fsuipc_send_control_fastslow(1017,65893,3)    -- 65893   AP_ALT_VAR_DEC   --    1017 Ap Alt Var Inc Fast (+1000)
+	 }
+      }
+   },
+   -- MODE 4
+   {
+      button1=function() end,                          -- 65725   AP_HDG_HOLD
+      button1L=KnobPanel.fsuipc_send_control(65725),             -- 65725   AP_HDG_HOLD
+      button2=KnobPanel.fsuipc_send_control(65729),              -- 65729   AP_NAV1_HOLD
+      button2L=KnobPanel.fsuipc_send_control(65729),             -- 65729   AP_NAV1_HOLD
+      encoders={				             
+	 { KnobPanel.fsuipc_send_control(66710),                  -- 66710   AP_MAX_BANK_DEC
+	   KnobPanel.fsuipc_send_control(66709)                   -- 66709   AP_MAX_BANK_INC
+	 },			          	       
+	 { KnobPanel.fsuipc_send_control(65880),                 -- 65880   HEADING_BUG_DEC   --    1024 Heading Bug Dec Fast (10)
+	   KnobPanel.fsuipc_send_control(65879)                  -- 65879   HEADING_BUG_INC   --    1025 Heading Bug Inc Fast (+10)
+	 },				     	       
+	 { KnobPanel.fsuipc_send_control_fastslow(1026,65662,3), -- 65662   VOR1_OBI_DEC      --    1026 Vor1 Obi Dec Fast (10) 
+	   KnobPanel.fsuipc_send_control_fastslow(1027,65663,3)  -- 65663   VOR1_OBI_INC      --    1027 Vor1 Obi Inc Fast (+10)
+	 },					       
+	 { KnobPanel.fsuipc_send_control_fastslow(1028,65664,3), -- 65664   VOR2_OBI_DEC      --    1028 Vor2 Obi Dec Fast (10) 
+	   KnobPanel.fsuipc_send_control_fastslow(1029,65665,3)  -- 65665   VOR2_OBI_INC      --    1029 Vor2 Obi Inc Fast (+10)
+	 }
+      }
+   },
+   -- MODE 5
+   {
+      button1=KnobPanel.fsuipc_send_control(1120),              -- 1120 Xpndr on/mode c (sb3)
+      button1L=KnobPanel.fsuipc_send_control(1119),             -- 1119 Xpndr stby (sb3)
+      button2=KnobPanel.fsuipc_send_control(1122),              -- 1122 Xpndr ident (sb3)
+      button2L=KnobPanel.fsuipc_send_control(1122),             -- 1122 Xpndr ident (sb3)
+      encoders={				       
+	 { KnobPanel.fsuipc_send_control(66455),                  -- 66455   XPNDR_1000_DEC
+	   KnobPanel.fsuipc_send_control(65651),                  -- 65651   XPNDR_1000_INC
+	 },			          	       
+	 { KnobPanel.fsuipc_send_control(66456),                 -- 66456   XPNDR_100_DEC
+	   KnobPanel.fsuipc_send_control(65652)                  -- 65652   XPNDR_100_INC
+	 },				     	       
+	 { KnobPanel.fsuipc_send_control(66457), -- 66457   XPNDR_10_DEC
+	   KnobPanel.fsuipc_send_control(65653)  -- 65653   XPNDR_10_INC
+	 },					       
+	 { KnobPanel.fsuipc_send_control(66458),  -- 66458   XPNDR_1_DEC
+	   KnobPanel.fsuipc_send_control(65654) -- 65654   XPNDR_1_INC
+	 }
+      }
+   },
+   -- MODE 6
+   {
+      button1=KnobPanel.fsuipc_send_control(1120),              -- 1120 Xpndr on/mode c (sb3)
+      button1L=KnobPanel.fsuipc_send_control(1119),             -- 1119 Xpndr stby (sb3)
+      button2=KnobPanel.fsuipc_send_control(1122),              -- 1122 Xpndr ident (sb3)
+      button2L=KnobPanel.fsuipc_send_control(1122),             -- 1122 Xpndr ident (sb3)
+      encoders={				       
+	 { KnobPanel.fsuipc_send_control(66455),                  -- 66455   XPNDR_1000_DEC
+	   KnobPanel.fsuipc_send_control(65651),                  -- 65651   XPNDR_1000_INC
+	 },			          	       
+	 { KnobPanel.fsuipc_send_control(66456),                 -- 66456   XPNDR_100_DEC
+	   KnobPanel.fsuipc_send_control(65652)                  -- 65652   XPNDR_100_INC
+	 },				     	       
+	 { KnobPanel.fsuipc_send_control(66457), -- 66457   XPNDR_10_DEC
+	   KnobPanel.fsuipc_send_control(65653)  -- 65653   XPNDR_10_INC
+	 },					       
+	 { KnobPanel.fsuipc_send_control(66458),  -- 66458   XPNDR_1_DEC
+	   KnobPanel.fsuipc_send_control(65654) -- 65654   XPNDR_1_INC
+	 }
+      }
+   }
+
+}
+
+
+
+function KnobPanel.fsuipc_write_control_param(control,modifier)
+   if (modifier == nil) then
+      modifier = function(value)
+	 return(value)
+      end
+   end
+   return(
+      function(value)
+	 ipc.control(control,modifer(value))
+      end
+   )
+end
+
+function KnobPanel.fsuipc_handle_buttons(joynum,button_mask,downup)
+   -- Must be called with button=255 so we get the state of all buttons
+   local buttons_changed =   logic.Xor(button_mask,prev_button_mask)
+   local buttons_pressed =   logic.And(button_mask,buttons_changed)
+   local buttons_released =  logic.And(logic.Not(button_mask),buttons_changed)
+
+   print("prev button_mask    " .. string.format("%08x",prev_button_mask))
+   print("Got button_mask     " .. string.format("%08x",button_mask))
+   print("Got button changed  " .. string.format("%08x",buttons_changed))
+   print("Got button pressed  " .. string.format("%08x",buttons_pressed))
+   print("Got button released " .. string.format("%08x",buttons_released))
+   
+   prev_button_mask = button_mask
+
+   local mode_pressed = logic.And(button_masks.modes,buttons_pressed)
+   print("Mode Pressed " .. string.format("%08x",mode_pressed))
+   if (mode_pressed ~= 0) then
+      mode_pressed = logic.Shr(mode_pressed,button_offsets.modes)
+
+      local next_mode = 1
+      while (mode_pressed ~= 0) do
+	 if (mode_pressed == 1) then
+	    current_mode = next_mode
+	    mode_pressed = 0
+	 end
+	 next_mode = next_mode + 1
+	 mode_pressed = logic.Shr(mode_pressed,1)
+      end
+   end
+   
+   for knob=1,2 do
+      local pressed = logic.And(buttons_pressed,button_masks.knob_buttons[knob])
+      print("KNOB Got pressed " .. string.format("%08x",pressed) .. " from " .. string.format("%08x",button_masks.knob_buttons[knob]))
+      if (pressed ~= 0) then
+	 local changed = logic.Shr(pressed,button_offsets.knob_buttons[knob])
+	 if (changed == 1) then
+	    if (knob == 1) then msfs_event_mapping[current_mode].button1() end
+	    if (knob == 2) then msfs_event_mapping[current_mode].button2() end
+	 end
+	 if (changed == 2) then
+	    if (knob == 1) then msfs_event_mapping[current_mode].button1L() end
+	    if (knob == 2) then msfs_event_mapping[current_mode].button2L() end
+	 end
+      end
+   end
+   
+   for encoder=1,4 do
+     local released = logic.And(buttons_released,button_masks.encoder_directions[encoder])
+      if (released ~= 0)  then
+	 -- value buttons don't change when the direction buttons are released (they are "clocked" by the neg edge of the direction buttons)
+	 local value = logic.Shr(logic.And(button_mask,button_masks.encoder_values[encoder]),button_offsets.encoders[encoder] + 2)
+	 
+	 if (released > (button_masks.encoder_directions[encoder]/2) ) then
+	    -- upper bit was set, positive direction
+	    msfs_event_mapping[current_mode]["encoders"][encoder][2](value)
+	 else
+	    -- lower bit was set, negative direction
+	    msfs_event_mapping[current_mode]["encoders"][encoder][1](value)
+	 end
+      end
+   end      
+      
+end
+
+
+
+-- returns a lambda the will read and write back an updated value in MSFS
+-- Multiplier will multiply amount before adding to original
+function KnobPanel.fsuipc_offset_change(offset,reader,writer,input_modifier,modifier)
+   return(function(amount)
+	 local new_amount = amount
+	 if (new_amount == nil) then
+	    new_amount = 1
+	 end
+
+	 if (input_modifier ~= nil) then  new_amount = input_modifier(new_amount) end
+	 local next_value = reader(offset) + new_amount
+	 
+	 if (modifier ~= nil) then next_value = modifier(next_value) end
+
+	 writer(offset,next_value)
+	 
+	 print(string.format("%0x",offset) .. " Getting current setting " )
+	 print(string.format("%0x",offset) .. " Adding " .. new_amount) 
+	 print(string.format("%0x",offset) .. " Writing " .. next_value) 
+   end)
+end
+
+function KnobPanel.fsuipc_offset_change_freq_mhz(offset,reader,writer,min,max)
+   return(function(amount) 
+	 local cur_value = reader(offset)
+	 local mhz = 10 * logic.Shr(cur_value,24) + logic.And(logic.Shr(cur_value,16),0xFF)
+	 
+	 mhz = mhz + amount
+
+	 if (mhz > max) then mhz = min + (mhz - max - 1) end
+	 if (mhz < min) then mhz = max - (min - mhz - 1) end
+	 
+	 local new_value = logic.And(cur_value,0xFFFF)
+	 new_value = logic.Or(new_value,logic.sl(math.floor(mhz/10),24))
+	 new_value = logic.Or(new_value,logic.sl((mhz % 10),16))
+	 
+	 writer(offset,new_value)
+	 
+   end)
+end
+
+function KnobPanel.fsuipc_offset_change_freq_khz(offset,reader,writer,modifier)
+   return(function(amount) 
+	 local cur_value = reader(offset)
+	 local khz = 10 * logic.And(logic.Shr(cur_value,8),0xFF) + logic.And(cur_value,0xFF)
+	 
+	 khz = (khz + amount) % 100
+	 new_value = logic.And(cur_value,0xFFFF0000)
+	 new_value = logic.Or(new_value,logic.sl(math.floor(khz / 10),8))
+	 new_value = logic.Or(new_value,(khz % 10))
+
+	 writer(offset,new_value)
+	 
+   end)
+end
+
+
+function KnobPanel.multiply(factor)
+   return(
+      function(arg)
+	 return(arg * factor)
+      end
+   )
+end   
+
+function KnobPanel.wrap(amount)
+   return(
+      function(arg)
+	 return(arg % amount)
+      end
+   )
+end   
+
+
+      
+
+
+return KnobPanel
