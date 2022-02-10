@@ -3,7 +3,7 @@ local KnobPanel = {}
 function KnobPanel.fsuipc_send_control(control)
    return(
       function(value)
-	 ipc.log("Sending control" .. control)
+--	 ipc.log("Sending control" .. control)
 	 ipc.control(control)
       end
    )
@@ -13,12 +13,22 @@ function KnobPanel.fsuipc_send_control_fastslow(control_fast,control_slow,thresh
    return(
       function(value)
 	 if (value > threshold) then
-	    ipc.log("Sending control" .. control_fast)
+--	    ipc.log("Sending control" .. control_fast)
 	    ipc.control(control_fast)
 	 else
-	    ipc.log("Sending control" .. control_slow)
+--	    ipc.log("Sending control" .. control_slow)
 	    ipc.control(control_slow)
 	 end
+      end
+   )
+end
+
+function KnobPanel.fsuipc_send_keypress(key,shift)
+   if (shift == nil) then shift = 0 end
+   return(
+      function(value)
+--    	 ipc.log("Sending control" .. key)
+	 ipc.keypress(key,shift)
       end
    )
 end
@@ -92,7 +102,7 @@ local msfs_event_mapping = {
    },
    -- MODE 3
    {
-      button1=function() end,                            -- xs???   FLC
+      button1=KnobPanel.fsuipc_send_keypress(70,27),                            -- xs???   FLC - configure keypress in MSFS to AltCtlShift-f
       button1L=KnobPanel.fsuipc_send_control(67231),              -- 67231   AP_MANAGED_SPEED_IN_MACH_TOGGLE (LONG PRESS)
       button2=KnobPanel.fsuipc_send_control(66100),                -- 66100   AP_VS_ON
       button2L=KnobPanel.fsuipc_send_control(67231),               -- 67231   AP_MANAGED_SPEED_IN_MACH_TOGGLE (LONG PRESS)
@@ -101,19 +111,19 @@ local msfs_event_mapping = {
 	   KnobPanel.fsuipc_send_control(1021)                     -- 1021    Ap Spd Var Inc Fast (+10)
 	 },			          
 	 { KnobPanel.fsuipc_send_control(65897),                   -- 65897   AP_SPD_VAR_DEC
-	   KnobPanel.fsuipc_send_control(65996)                    -- 65896   AP_SPD_VAR_INC
+	   KnobPanel.fsuipc_send_control(65896)                    -- 65896   AP_SPD_VAR_INC
 	 },				     
-	 { KnobPanel.fsuipc_send_control_fastslow(1022,56895,3),   -- 65895   AP_VS_VAR_DEC,	   --    1022 Ap Vs Var Dec Fast (1000)
-	   KnobPanel.fsuipc_send_control_fastslow(1023,65984,3)    -- 65894   AP_VS_VAR_INC,    --    1023 Ap Vs Var Inc Fast (+1000)
+	 { KnobPanel.fsuipc_send_control_fastslow(1022,65895,3),   -- 65895   AP_VS_VAR_DEC,	   --    1022 Ap Vs Var Dec Fast (1000)
+	   KnobPanel.fsuipc_send_control_fastslow(1023,65894,3)    -- 65894   AP_VS_VAR_INC,       --    1023 Ap Vs Var Inc Fast (+1000)
 	 },
-	 { KnobPanel.fsuipc_send_control_fastslow(1016,65892,3),   -- 65892   AP_ALT_VAR_INC   --    1016 Ap Alt Var Dec Fast (1000)
-	   KnobPanel.fsuipc_send_control_fastslow(1017,65893,3)    -- 65893   AP_ALT_VAR_DEC   --    1017 Ap Alt Var Inc Fast (+1000)
+	 { KnobPanel.fsuipc_send_control_fastslow(1016,65893,3),   -- 65893   AP_ALT_VAR_DEC   --    1016 Ap Alt Var Dec Fast (1000)
+	   KnobPanel.fsuipc_send_control_fastslow(1017,65892,3)    -- 65892   AP_ALT_VAR_INC   --    1017 Ap Alt Var Inc Fast (+1000)
 	 }
       }
    },
    -- MODE 4
    {
-      button1=function() end,                          -- 65725   AP_HDG_HOLD
+      button1=KnobPanel.fsuipc_send_control(65725),              -- 65725   AP_HDG_HOLD
       button1L=KnobPanel.fsuipc_send_control(65725),             -- 65725   AP_HDG_HOLD
       button2=KnobPanel.fsuipc_send_control(65729),              -- 65729   AP_NAV1_HOLD
       button2L=KnobPanel.fsuipc_send_control(65729),             -- 65729   AP_NAV1_HOLD
@@ -121,13 +131,13 @@ local msfs_event_mapping = {
 	 { KnobPanel.fsuipc_send_control(66710),                  -- 66710   AP_MAX_BANK_DEC
 	   KnobPanel.fsuipc_send_control(66709)                   -- 66709   AP_MAX_BANK_INC
 	 },			          	       
-	 { KnobPanel.fsuipc_send_control(65880),                 -- 65880   HEADING_BUG_DEC   --    1024 Heading Bug Dec Fast (10)
-	   KnobPanel.fsuipc_send_control(65879)                  -- 65879   HEADING_BUG_INC   --    1025 Heading Bug Inc Fast (+10)
+	 { KnobPanel.fsuipc_send_control(65880),                 -- 65880   HEADING_BUG_DEC   --    1024 Heading Bug Dec Fast (10)  --  OFFSET 0x07CC 2 AUTOPILOT HEADING LOCK DIR as degrees*65536/360
+	   KnobPanel.fsuipc_send_control(65879)                  -- 65879   HEADING_BUG_INC   --    1025 Heading Bug Inc Fast (+10)  
 	 },				     	       
-	 { KnobPanel.fsuipc_send_control_fastslow(1026,65662,3), -- 65662   VOR1_OBI_DEC      --    1026 Vor1 Obi Dec Fast (10) 
+	 { KnobPanel.fsuipc_send_control_fastslow(1026,65662,3), -- 65662   VOR1_OBI_DEC      --    1026 Vor1 Obi Dec Fast (10)  -- OFFSET 0x0C4E 2 NAV OBS1 (degrees 0-359)
 	   KnobPanel.fsuipc_send_control_fastslow(1027,65663,3)  -- 65663   VOR1_OBI_INC      --    1027 Vor1 Obi Inc Fast (+10)
 	 },					       
-	 { KnobPanel.fsuipc_send_control_fastslow(1028,65664,3), -- 65664   VOR2_OBI_DEC      --    1028 Vor2 Obi Dec Fast (10) 
+	 { KnobPanel.fsuipc_send_control_fastslow(1028,65664,3), -- 65664   VOR2_OBI_DEC      --    1028 Vor2 Obi Dec Fast (10)  -- OFFSET 0x0C5E 2 NAV OBS1 (degrees 0-359)
 	   KnobPanel.fsuipc_send_control_fastslow(1029,65665,3)  -- 65665   VOR2_OBI_INC      --    1029 Vor2 Obi Inc Fast (+10)
 	 }
       }
@@ -198,16 +208,16 @@ function KnobPanel.fsuipc_handle_buttons(joynum,button_mask,downup)
    local buttons_pressed =   logic.And(button_mask,buttons_changed)
    local buttons_released =  logic.And(logic.Not(button_mask),buttons_changed)
 
-   print("prev button_mask    " .. string.format("%08x",prev_button_mask))
-   print("Got button_mask     " .. string.format("%08x",button_mask))
-   print("Got button changed  " .. string.format("%08x",buttons_changed))
-   print("Got button pressed  " .. string.format("%08x",buttons_pressed))
-   print("Got button released " .. string.format("%08x",buttons_released))
+   -- print("prev button_mask    " .. string.format("%08x",prev_button_mask))
+   -- print("Got button_mask     " .. string.format("%08x",button_mask))
+   -- print("Got button changed  " .. string.format("%08x",buttons_changed))
+   -- print("Got button pressed  " .. string.format("%08x",buttons_pressed))
+   -- print("Got button released " .. string.format("%08x",buttons_released))
    
    prev_button_mask = button_mask
 
    local mode_pressed = logic.And(button_masks.modes,buttons_pressed)
-   print("Mode Pressed " .. string.format("%08x",mode_pressed))
+   --   print("Mode Pressed " .. string.format("%08x",mode_pressed))
    if (mode_pressed ~= 0) then
       mode_pressed = logic.Shr(mode_pressed,button_offsets.modes)
 
@@ -224,7 +234,7 @@ function KnobPanel.fsuipc_handle_buttons(joynum,button_mask,downup)
    
    for knob=1,2 do
       local pressed = logic.And(buttons_pressed,button_masks.knob_buttons[knob])
-      print("KNOB Got pressed " .. string.format("%08x",pressed) .. " from " .. string.format("%08x",button_masks.knob_buttons[knob]))
+      -- print("KNOB Got pressed " .. string.format("%08x",pressed) .. " from " .. string.format("%08x",button_masks.knob_buttons[knob]))
       if (pressed ~= 0) then
 	 local changed = logic.Shr(pressed,button_offsets.knob_buttons[knob])
 	 if (changed == 1) then
@@ -274,9 +284,9 @@ function KnobPanel.fsuipc_offset_change(offset,reader,writer,input_modifier,modi
 
 	 writer(offset,next_value)
 	 
-	 print(string.format("%0x",offset) .. " Getting current setting " )
-	 print(string.format("%0x",offset) .. " Adding " .. new_amount) 
-	 print(string.format("%0x",offset) .. " Writing " .. next_value) 
+	 -- print(string.format("%0x",offset) .. " Getting current setting " )
+	 -- print(string.format("%0x",offset) .. " Adding " .. new_amount) 
+	 -- print(string.format("%0x",offset) .. " Writing " .. next_value) 
    end)
 end
 
