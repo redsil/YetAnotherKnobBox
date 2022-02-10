@@ -327,9 +327,8 @@ boolean process_encoder(DualEncoderKnob &knob, int gamepad_button_offset, BleGam
 
     if (magnitude > 8) magnitude = 8;
 
-    // Big Endian
     // Set binary encode value in 3 buttons
-    for (int index = 2; index >= 0; index--) {
+    for (int index = 0; index <3; index++) {
       if (magnitude && ((magnitude-1) & (0x1 << index)) ) {
 	gp.press(g_button_index[offset]);
       } else {
