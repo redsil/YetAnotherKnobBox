@@ -9,6 +9,7 @@ enum MODE { MODE_NONE, MODE_1, MODE_2, MODE_3, MODE_4, MODE_5, MODE_6, BRIGHTNES
 
 #define LED_PIN    2
 #define LED_COUNT 8
+#define UPDATE_INTERVAL 40
 
 
 // #define ENABLE_BUTTONS
@@ -243,7 +244,7 @@ void loop(){
 
   // Flip betweewn pressing and releasing buttons
   release_cycle = !release_cycle;
-  delay(50);
+  delay(UPDATE_INTERVAL);
 }
 
 void print_debug(BleGamepad &gp) {
