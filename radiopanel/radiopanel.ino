@@ -70,7 +70,7 @@ int g_button_index[NUM_BUTTONS] = {
   BUTTON_27,
   BUTTON_28,
   BUTTON_29,
-  BUTTON_31
+  BUTTON_30
 };
 
 // which buttons should be released during the release cycle

@@ -1,3 +1,10 @@
+-- ############################################3
+-- This is FSUIPC LUA code to connect the box
+-- to MSFS2020
+-- I decided on FSUIPC as it has access to offsets
+-- where I can set analog values are increment something
+-- more than a single value
+
 local KnobPanel = {}
 
 function KnobPanel.fsuipc_send_control(control)
@@ -9,6 +16,18 @@ function KnobPanel.fsuipc_send_control(control)
    )
 end
 
+function KnobPanel.fsuipc_send_hvars(names)
+
+	return(
+  	  function(value)
+ --	 ipc.log("Sending control" .. control)
+ 		for i,v in ipairs(names) do
+ 			ipc.activateHvar(v)
+		end
+	   end
+	)
+ end
+ 
 function KnobPanel.fsuipc_send_control_fastslow(control_fast,control_slow,threshold)
    return(
       function(value)
@@ -165,26 +184,25 @@ local msfs_event_mapping = {
    },
    -- MODE 6
    {
-      button1=KnobPanel.fsuipc_send_control(1120),              -- 1120 Xpndr on/mode c (sb3)
-      button1L=KnobPanel.fsuipc_send_control(1119),             -- 1119 Xpndr stby (sb3)
-      button2=KnobPanel.fsuipc_send_control(1122),              -- 1122 Xpndr ident (sb3)
-      button2L=KnobPanel.fsuipc_send_control(1122),             -- 1122 Xpndr ident (sb3)
+      button1=KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_ENT_Push"}),        
+      button1L=KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_CLR"}),
+      button2=KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_FMS_Upper_PUSH"}),  
+      button2L=KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_MENU_Push"}), 
       encoders={				       
-	 { KnobPanel.fsuipc_send_control(66455),                  -- 66455   XPNDR_1000_DEC
-	   KnobPanel.fsuipc_send_control(65651),                  -- 65651   XPNDR_1000_INC
+	 { KnobPanel.fsuipc_send_hvars({"AS1000_PFD_BARO_DEC"}),
+	   KnobPanel.fsuipc_send_hvars({"AS1000_PFD_BARO_INC"}),
 	 },			          	       
-	 { KnobPanel.fsuipc_send_control(66456),                 -- 66456   XPNDR_100_DEC
-	   KnobPanel.fsuipc_send_control(65652)                  -- 65652   XPNDR_100_INC
+	 { KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_RANGE_INC"}),
+	   KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_RANGE_DEC"}) 
 	 },				     	       
-	 { KnobPanel.fsuipc_send_control(66457), -- 66457   XPNDR_10_DEC
-	   KnobPanel.fsuipc_send_control(65653)  -- 65653   XPNDR_10_INC
+	 { KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_FMS_Lower_DEC"}),       -- alt-ctl-shift l G1000_MFD_GROUP_KNOB_DEC	Step down through the page groups.	Shared Cockpit
+	   KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_FMS_Lower_INC"})        -- alt-ctl-shift m G1000_MFD_GROUP_KNOB_INC	Step up through the page groups.	Shared Cockpit
 	 },					       
-	 { KnobPanel.fsuipc_send_control(66458),  -- 66458   XPNDR_1_DEC
-	   KnobPanel.fsuipc_send_control(65654) -- 65654   XPNDR_1_INC
+	 { KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_FMS_Upper_DEC"}),       -- alt-ctl-shift n G1000_MFD_PAGE_KNOB_DEC	Step down through the individual pages.	Shared Cockpit
+	   KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_FMS_Upper_INC"})       -- alt-ctl-shift o G1000_MFD_PAGE_KNOB_INC	Step up through the individual pages.	Shared Cockpit
 	 }
       }
    }
-
 }
 
 
@@ -223,12 +241,12 @@ function KnobPanel.fsuipc_handle_buttons(joynum,button_mask,downup)
 
       local next_mode = 1
       while (mode_pressed ~= 0) do
-	 if (mode_pressed == 1) then
-	    current_mode = next_mode
-	    mode_pressed = 0
-	 end
-	 next_mode = next_mode + 1
-	 mode_pressed = logic.Shr(mode_pressed,1)
+	     if (mode_pressed == 1) then
+	        current_mode = next_mode
+	        mode_pressed = 0
+    	 end
+	     next_mode = next_mode + 1
+	     mode_pressed = logic.Shr(mode_pressed,1)
       end
    end
    
