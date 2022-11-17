@@ -13,7 +13,7 @@ enum MODE { MODE_NONE, MODE_1, MODE_2, MODE_3, MODE_4, MODE_5, MODE_6, BRIGHTNES
 
 
 // #define ENABLE_BUTTONS
-#define NUM_AXES 0
+#define NUM_AXES 4
 #define NUM_BUTTONS 32
 
 #define NUM_MODE_PINS 6
@@ -32,8 +32,8 @@ enum MODE { MODE_NONE, MODE_1, MODE_2, MODE_3, MODE_4, MODE_5, MODE_6, BRIGHTNES
 
 BleGamepad bleGamepad("KnobPanel","Rpierce",90);
 
-DualEncoderKnob knob1(15,16,17,18,13);
-DualEncoderKnob knob2(19,21,22,23,12);
+DualEncoderKnob knob1(15,16,17,18,13,0);
+DualEncoderKnob knob2(19,21,22,23,12,1);
 
 PanelLed strip(LED_PIN,10);
 
@@ -72,9 +72,6 @@ int g_button_index[NUM_BUTTONS] = {
   BUTTON_29,
   BUTTON_30
 };
-
-// which buttons should be released during the release cycle
-boolean g_release_mask[NUM_BUTTONS];
 
 MODE current_mode = MODE_NONE;
 MODE prev_mode = MODE_NONE;
@@ -117,16 +114,19 @@ void setup(){
   }
   
   Serial.println("Starting BLE work!");
+  BleGamepadConfiguration gp_config;
+  gp_config.setAutoReport(false);
+  gp_config.setWhichAxes(true,true,false,true,true,false,false,false); 
+  gp_config.setControllerType(CONTROLLER_TYPE_MULTI_AXIS);
+  gp_config.setButtonCount(32);  
+  gp_config.setModelNumber("1");
+  gp_config.setSoftwareRevision("1.1");
+  gp_config.setSerialNumber("00001");
+  gp_config.setFirmwareRevision("1.1");
+  gp_config.setHardwareRevision("1.0");
+  // reset rudder trim, reset aileron trim, reset elevator trim, switch knob3 modes
 
-  bleGamepad.setAutoReport(false);
-  bleGamepad.begin(32, 0,false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false,
-    false);  
+  bleGamepad.begin(&gp_config);
 
   
   knob1.init();
@@ -178,7 +178,6 @@ void loop(){
         int button_offset = MODE_BUTTON_OFFSET + mode_offset;
 
         bleGamepad.press(g_button_index[button_offset]);
-        g_release_mask[button_offset] = true;
         
         update_controller = true;
 
@@ -222,7 +221,7 @@ void loop(){
       strip.show();
     }
     
-    boolean encoder_movement = true;
+    boolean encoder_movement = false;
     if (process_encoder(knob1,KNOB1_BUTTON_OFFSET,bleGamepad)) encoder_movement = true;
     if (process_encoder(knob2,KNOB2_BUTTON_OFFSET,bleGamepad)) encoder_movement = true;
 
@@ -231,7 +230,7 @@ void loop(){
   
     if (current_mode >= MODE_1 && current_mode <= MODE_6) {
       if (update_controller) {
-	//print_debug(bleGamepad);
+//	      print_debug(bleGamepad);
       	if (bleGamepad.isConnected()) bleGamepad.sendReport();
       }
       if (bleGamepad.isPressed(g_button_index[KNOB1_BUTTON_OFFSET + ENCODER1_DIR_BUTTON_OFFSET]) || bleGamepad.isPressed(g_button_index[KNOB1_BUTTON_OFFSET + ENCODER2_DIR_BUTTON_OFFSET]) ||
@@ -265,7 +264,7 @@ void loop(){
       strip.setTimer(g_timer_value);
       strip.showTimer();
     }  
-  }    
+  }
 
   // don't run the timer while we are setting it
   if (current_mode != SET_TIMER) {
@@ -307,12 +306,10 @@ boolean process_encoder(DualEncoderKnob &knob, int gamepad_button_offset, BleGam
       if (knob.timeSincePressed() > 1000) {
         // long press
         gp.press(g_button_index[gamepad_button_offset+1]);
-        g_release_mask[gamepad_button_offset+1] = true;
       }
       else {
         // short press
         gp.press(g_button_index[gamepad_button_offset]);
-        g_release_mask[gamepad_button_offset] = true;
       }
       is_change = true;
       knob.resetPressed();
@@ -330,20 +327,35 @@ boolean process_encoder(DualEncoderKnob &knob, int gamepad_button_offset, BleGam
   knob_offset[0] = gamepad_button_offset + ENCODER1_DIR_BUTTON_OFFSET;
   knob_offset[1] = gamepad_button_offset + ENCODER2_DIR_BUTTON_OFFSET;
   
+  int axis_value[4] = { 0,0,0,0 };
   for (int encoder_id = 0; encoder_id < 2; encoder_id++) {
     int offset = knob_offset[encoder_id];
       
     int value = knob.getChange(encoder_id);
     int magnitude = abs(value);
-    if (value != 0) {
-//      knob.setLastCount(encoder_id);
+
+    if (knob.get_id() == 0) {
+      if (encoder_id == 0) {
+        gp.setX(value);
+      }
+      else {
+        gp.setY(value);
+      }
     }
-    
+    else {
+      if (encoder_id == 0) {
+        gp.setRX(value);
+      }
+      else {
+        gp.setRY(value);
+      }
+    }
+
     if (value < 0) {
 //      Serial.printf("DEBUG %d: count = %d change = %d ",encoder_id,knob.getCount(encoder_id),value);
 //      Serial.println();
       gp.press(g_button_index[offset]);
-      g_release_mask[offset] = true;
+
       is_change = true;
     }
     offset++;
@@ -351,7 +363,7 @@ boolean process_encoder(DualEncoderKnob &knob, int gamepad_button_offset, BleGam
 //      Serial.printf("DEBUG %d: count = %d change = %d ",encoder_id,knob.getCount(encoder_id),value);
 //      Serial.println();
       gp.press(g_button_index[offset]);
-      g_release_mask[offset] = true;
+      gp.setAxes(axis_value[0],axis_value[1],axis_value[2],axis_value[3]);
       is_change = true;
     }
     offset++;
@@ -361,11 +373,10 @@ boolean process_encoder(DualEncoderKnob &knob, int gamepad_button_offset, BleGam
     // Set binary encode value in 3 buttons
     for (int index = 0; index <3; index++) {
       if (magnitude && ((magnitude-1) & (0x1 << index)) ) {
-	gp.press(g_button_index[offset]);
+      	gp.press(g_button_index[offset]);
       } else {
-	gp.release(g_button_index[offset]);
+	      gp.release(g_button_index[offset]);
       }
-      g_release_mask[offset] = false;
       offset++;
     }
   }
@@ -398,7 +409,7 @@ int get_mode_pin_change() {
     int count = 1;
     while (state_change) {
       if (state_change & 0x1) {
-	change = count;
+      	change = count;
       }
       count++;
       state_change = state_change >> 1;
@@ -421,10 +432,17 @@ int get_mode_pin_change() {
 boolean release_buttons(BleGamepad &gp) {
   boolean found_pressed_button = false;
   for (int button = 0; button < NUM_BUTTONS; button++) {
-    if (gp.isPressed(g_button_index[button]) && g_release_mask[button]) {
+    if (gp.isPressed(g_button_index[button])) { 
       gp.release(g_button_index[button]);
       found_pressed_button = true;
     }
+  }
+  if (found_pressed_button) { // if buttons pressed then axes should be reset as well
+    gp.setX(0);
+    gp.setY(0);
+    gp.setZ(0);
+    gp.setRZ(0);
+//    print_debug(gp);
   }
   return(found_pressed_button);
 }

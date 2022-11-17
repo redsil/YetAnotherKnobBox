@@ -184,22 +184,22 @@ local msfs_event_mapping = {
    },
    -- MODE 6
    {
-      button1=KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_ENT_Push"}),        
-      button1L=KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_CLR"}),
-      button2=KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_FMS_Upper_PUSH"}),  
-      button2L=KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_MENU_Push"}), 
+      button1=KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_ENT_Push","H:AS530_ENT_Push"}),        
+      button1L=KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_CLR","H:AS530_CLR_Push"}),
+      button2=KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_FMS_Upper_PUSH","H:AS530_RightSmallKnob_Push"}),  
+      button2L=KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_MENU_Push","H:AS530_MENU_Push"}), 
       encoders={				       
 	 { KnobPanel.fsuipc_send_hvars({"AS1000_PFD_BARO_DEC"}),
 	   KnobPanel.fsuipc_send_hvars({"AS1000_PFD_BARO_INC"}),
 	 },			          	       
-	 { KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_RANGE_INC"}),
-	   KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_RANGE_DEC"}) 
+	 { KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_RANGE_INC","H:AS530_RNG_Dezoom"}),
+	   KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_RANGE_DEC","H:AS530_RNG_Zoom"}) 
 	 },				     	       
-	 { KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_FMS_Lower_DEC"}),       -- alt-ctl-shift l G1000_MFD_GROUP_KNOB_DEC	Step down through the page groups.	Shared Cockpit
-	   KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_FMS_Lower_INC"})        -- alt-ctl-shift m G1000_MFD_GROUP_KNOB_INC	Step up through the page groups.	Shared Cockpit
+	 { KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_FMS_Lower_DEC","H:AS530_RightLargeKnob_Left"}), 
+	   KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_FMS_Lower_INC","H:AS530_RightLargeKnob_Right"}) 
 	 },					       
-	 { KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_FMS_Upper_DEC"}),       -- alt-ctl-shift n G1000_MFD_PAGE_KNOB_DEC	Step down through the individual pages.	Shared Cockpit
-	   KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_FMS_Upper_INC"})       -- alt-ctl-shift o G1000_MFD_PAGE_KNOB_INC	Step up through the individual pages.	Shared Cockpit
+	 { KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_FMS_Upper_DEC","H:AS530_RightSmallKnob_Left"}),
+	   KnobPanel.fsuipc_send_hvars({"H:AS1000_MFD_FMS_Upper_INC","H:AS530_RightSmallKnob_Right"}) 
 	 }
       }
    }

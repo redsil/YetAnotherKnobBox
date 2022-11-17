@@ -8,6 +8,7 @@ class EncoderKnob {
 
   int m_last_count = 0;
   int m_count = 0;
+  int8_t m_id = 0;
 
   unsigned long m_pressed_time = 0;
   
@@ -18,11 +19,12 @@ class EncoderKnob {
 
  public:
     // Uses either the ESP32encoder library or a custom one.  ESP32encoder library is not debounced and only good for optical encoders
-  EncoderKnob(int pin_A, int pin_B, int pin_button) {
+  EncoderKnob(int pin_A, int pin_B, int pin_button, int8_t id = 0) {
 
     m_pin_button = pin_button;
     m_pin_A = pin_A;
     m_pin_B = pin_B;
+    m_id = id;
 
     lrmem = 3;
     lrsum = 0;
@@ -149,7 +151,7 @@ class DualEncoderKnob {
   EncoderKnob m_encoder2;
 
   int m_pin_button;
-  
+  int8_t m_id = 0;
   unsigned long m_pressed_time = 0;
   
   int m_pin_A;
@@ -158,14 +160,18 @@ class DualEncoderKnob {
   int m_pin_b;
   
  public:
-  DualEncoderKnob(int pin_A, int pin_B, int pin_a, int pin_b, int pin_button) : m_encoder1(pin_A,pin_B,0),m_encoder2(pin_a,pin_b,pin_button) {
+  DualEncoderKnob(int pin_A, int pin_B, int pin_a, int pin_b, int pin_button, int8_t id=0) : m_encoder1(pin_A,pin_B,0,2*id),m_encoder2(pin_a,pin_b,pin_button,2*id+1) {
 
     m_pin_button = pin_button;
     m_pin_A = pin_A;
     m_pin_B = pin_B;
     m_pin_a = pin_a;
     m_pin_b = pin_b;
-    
+    m_id = id;
+
+  }
+  int8_t get_id() {
+    return(m_id);
   }
 
   int8_t get_pinA() {

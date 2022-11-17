@@ -1,3 +1,8 @@
+-- ################################################################################
+-- This lua file goes with HIDmacros (really Lua macros).  It can work with XPLANE
+-- Directly but apparently not MSFS2020
+
+--
 -- NAV1/2
 -- NAV<1,2>_RADIO_FRACT_INC/DEC_CARRY
 -- NAV<1,2>_RADIO_WHOLE_INC/DEC
@@ -58,12 +63,13 @@ function fsuipc_send_adjust_event(offset,input_modifier,modifier)
 	    new_amount = 1
 	 end
 
-	 if (input_modifier ~= nil) then  new_amount = input_modifer(new_amount) end
-	 local next_value = 0
+	 if (input_modifier ~= nil) then  new_amount = input_modifier(new_amount) end
+
+	 local next_value = 0 + new_amount
 	 if (modifier ~= nil) then next_value = modifier(next_value) end
 	    
-	 print(offset .. " Getting current setting " )
-	 print(offset .. " Adding " .. new_amount) 
+	 print(string.format("%0x",offset) .. " Getting current setting " )
+	 print(string.format("%0x",offset) .. " Adding " .. new_amount) 
    end)
 end
 
@@ -136,25 +142,25 @@ msfs_event_mapping = {
       button1=simclient_send_event("AP_FLIGHT_LEVEL_CHANGE"),
       button2=simclient_send_event("AP_VS_ON"), -- is this correct?
       encoders={
-	 simclient_send_incremental_event("AP_MANAGED_SPEED_IN_MACH_OFF","AP_MANAGED_SPEED_IN_MACH_ON")
-	 fsuipc_send_adjust_event(0x07E2,multiply(1)),  -- 07E2 2 Autopilot airspeed value, in knots
-	 fsuipc_send_adjust_event(0x07F2,multiply(25)), -- 07F2 2 Autopilot vertical speed value, as ft/min
-	 fsuipc_send_adjust_event(0x07D4,multiply(65536*.3048))    -- 07D4 4 Autopilot altitude value, as metres*65536
+	 simclient_send_incremental_event("AP_MANAGED_SPEED_IN_MACH_OFF","AP_MANAGED_SPEED_IN_MACH_ON"),
+	 fsuipc_send_adjust_event(0x07E2,nil,nil),  -- 07E2 2 Autopilot airspeed value, in knots
+	 fsuipc_send_adjust_event(0x07F2,multiply(25),nil), -- 07F2 2 Autopilot vertical speed value, as ft/min
+	 fsuipc_send_adjust_event(0x07D4,multiply(65536*.3048),nil)    -- 07D4 4 Autopilot altitude value, as metres*65536
       }
    },
    {
       button1=simclient_send_event("AP_PANEL_HEADING_HOLD"),
       button2=simclient_send_event("AP_NAV1_HOLD"),
       encoders={
-	 sim_client_send_incremental_event("AP_MAX_BANK_DEC","AP_MAX_BANK_INC"),
-	 fsuipc_send_adjust_event(0x07CC,nil,wrap(360)),   -- 07CC 2 Autopilot heading value, as degrees*65536/360
+	 simclient_send_incremental_event("AP_MAX_BANK_DEC","AP_MAX_BANK_INC"),
+	 fsuipc_send_adjust_event(0x07CC,multiply(65536//360),wrap(65536)),   -- 07CC 2 Autopilot heading value, as degrees*65536/360
 	 fsuipc_send_adjust_event(0x0C5E,nil,wrap(360)),   -- 0C5E 2 NAV2 OBS setting (degrees, 0359)
 	 fsuipc_send_adjust_event(0x0C4E,nil,wrap(360))    -- 0C4E 2 NAV1 OBS setting (degrees, 0359)
       }
    },
    {
       button1=simclient_send_event("XPNDR_IDENT_ON"),
-      button2=fsuipc_send_adjust_event(0x0B46,nil,wrap(4))
+      button2=fsuipc_send_adjust_event(0x0B46,nil,wrap(4)),
       encoders={
 	 simclient_send_incremental_event("XPNDR_1000_DEC","XPNDR_1000_INC"),
 	 simclient_send_incremental_event("XPNDR_100_DEC","XPNDR_100_INC"),
@@ -164,7 +170,7 @@ msfs_event_mapping = {
    },
    {
       button1=simclient_send_event("XPNDR_IDENT_ON"),
-      button2=fsuipc_send_incremental_event(0x0B46,nil,wrap(4))
+      button2=fsuipc_send_adjust_event(0x0B46,nil,wrap(4)),
       encoders={
 	 simclient_send_incremental_event("XPNDR_1000_DEC","XPNDR_1000_INC"),
 	 simclient_send_incremental_event("XPNDR_100_DEC","XPNDR_100_INC"),
@@ -228,7 +234,7 @@ lmc_set_handler('KnobPanel',
 	  end
 	  
 	  for knob=1,4 do
-	     if (encoder_value[knob] ~= 0) do
+	     if (encoder_value[knob] ~= 0) then
 		mode_definition["encoders"][knob](encoder_value[knob])
 	     end
 	     end

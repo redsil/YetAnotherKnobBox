@@ -1,0 +1,23 @@
+;  xcc00zzzz is the control range to access offset registers.  66C0-66FF are custom offsets
+; encoder1 speed value in 66c0, encoder2 in 66c1 etc
+1=P9,2,Cx010066c0,0  ; Clear encoder 1 speed value
+2=CU(+9,4)9,2,Cx110066c0,4  ; Set encoder 1 speed value
+3=CU(+9,5)9,2,Cx110066c0,2  ; Set encoder 1 speed value
+4=CU(+9,6)9,2,Cx110066c0,1  ; Set encoder 1 speed value
+2=CU(+9,4)9,3,Cx110066c0,4  ; Set encoder 1 speed value
+3=CU(+9,5)9,3,Cx110066c0,2  ; Set encoder 1 speed value
+4=CU(+9,6)9,3,Cx110066c0,1  ; Set encoder 1 speed value
+5=B66c0>3 CU()9,2,C
+5=B66c0<4 CU()9,2,C
+5=B66c0>3 CU()9,3,C
+5=B66c0<4 CU()9,3,C
+
+2=CP(+9,3)Cx010066c0,0  ; Clear encoder 1 speed value
+4=CP(+9,3)Cx110066c0,2  ; Set encoder 1 speed value
+4=CP(+9,6)Cx110066c0,1  ; Set encoder 1 speed value
+1=CP(+9,7)Cx010066c0,0  ; Clear encoder 2 speed value
+2=CP(+9,8)Cx010066c0,0  ; Clear encoder 2 speed value
+3=CP(+9,9)Cx110066c0,4  ; Set encoder 2 speed value
+4=CP(+9,10)Cx110066c0,2  ; Set encoder 2 speed value
+4=CP(+9,11)Cx110066c0,1  ; Set encoder 2 speed value
+

@@ -1,0 +1,323 @@
+make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+make: *** No rule to make target 'all'.  Stop.
+
+# GNU Make 4.3
+# Built for x86_64-pc-linux-gnu
+# Copyright (C) 1988-2020 Free Software Foundation, Inc.
+# License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+# This is free software: you are free to change and redistribute it.
+# There is NO WARRANTY, to the extent permitted by law.
+
+# Make data base, printed on Tue Oct 25 21:06:58 2022
+
+# Variables
+
+# environment
+JAVA_HOME = /usr/lib/jvm/java-8-oracle
+# environment
+GDK_BACKEND = x11
+# environment
+LC_ALL = C
+# environment
+MANDATORY_PATH = /usr/share/gconf/xubuntu.mandatory.path
+# environment
+VSCODE_CWD = /home/abarber/git
+# environment
+GROUP = abarber
+# environment
+WINDOWID = 94371843
+# environment
+MACHTYPE = x86_64
+# environment
+LIBVIRT_DEFAULT_URI = qemu:///system
+# environment
+GDM_LANG = en_US
+# default
+MAKE_COMMAND := make
+# environment
+GTK3_MODULES = gtk-vector-screenshot
+# environment
+QT_ACCESSIBILITY = 1
+# automatic
+@D = $(patsubst %/,%,$(dir $@))
+# environment
+VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+# default
+.VARIABLES := 
+# environment
+HOST = ayreon
+# environment
+PWD = /home/abarber/git/YetAnotherKnobBox/radiopanel
+# automatic
+%D = $(patsubst %/,%,$(dir $%))
+# environment
+XDG_DATA_DIRS = /usr/share/xubuntu:/usr/share/xfce4:/home/abarber/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share:/var/lib/snapd/desktop:/var/lib/snapd/desktop:/usr/share
+# automatic
+^D = $(patsubst %/,%,$(dir $^))
+# automatic
+%F = $(notdir $%)
+# environment
+VSCODE_CODE_CACHE_PATH = /home/abarber/.config/Code/CachedData/784b0177c56c607789f9638da7b6bf3230d47a8c
+# environment
+XDG_SESSION_PATH = /org/freedesktop/DisplayManager/Session0
+# environment
+LANG = C
+# environment
+XAUTHORITY = /home/abarber/.Xauthority
+# default
+.LOADED := 
+# default
+.INCLUDE_DIRS = /usr/local/include /usr/include /usr/include
+# makefile
+MAKEFLAGS = pqrR
+# makefile
+CURDIR := /home/abarber/git/YetAnotherKnobBox/radiopanel
+# environment
+J2REDIR = /usr/lib/jvm/java-8-oracle/jre
+# environment
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+# automatic
+*D = $(patsubst %/,%,$(dir $*))
+# environment
+MFLAGS = -pqrR
+# environment
+SSH_AUTH_SOCK = /run/user/1000/keyring/ssh
+# default
+.SHELLFLAGS := -c
+# environment
+XDG_CONFIG_DIRS = /etc/xdg/xdg-xubuntu:/etc/xdg:/etc/xdg
+# automatic
++D = $(patsubst %/,%,$(dir $+))
+# environment
+XDG_SESSION_DESKTOP = xubuntu
+# makefile (from 'Makefile', line 1)
+MAKEFILE_LIST := Makefile
+# automatic
+@F = $(notdir $@)
+# environment
+VSCODE_PID = 52676
+# environment
+VENDOR = unknown
+# environment
+XDG_SESSION_TYPE = x11
+# automatic
+?D = $(patsubst %/,%,$(dir $?))
+# environment
+CLUTTER_BACKEND = x11
+# environment
+SESSION_MANAGER = local/ayreon:@/tmp/.ICE-unix/2990,unix/ayreon:/tmp/.ICE-unix/2990
+# automatic
+*F = $(notdir $*)
+# environment
+QT_QPA_PLATFORMTHEME = gtk2
+# environment
+CHROME_DESKTOP = code-url-handler.desktop
+# environment
+DBUS_SESSION_BUS_ADDRESS = unix:path=/run/user/1000/bus
+# automatic
+<D = $(patsubst %/,%,$(dir $<))
+# environment
+VSCODE_NLS_CONFIG = {"locale":"en-us","availableLanguages":{},"_languagePackSupport":true}
+# default
+MAKE_HOST := x86_64-pc-linux-gnu
+# makefile
+SHELL = /bin/sh
+# default
+MAKECMDGOALS := all
+# environment
+XMODIFIERS = @im=ibus
+# environment
+SHLVL = 1
+# environment
+MAKELEVEL := 0
+# default
+MAKE = $(MAKE_COMMAND)
+# environment
+PATH = /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/usr/lib/jvm/java-8-oracle/bin:/usr/lib/jvm/java-8-oracle/db/bin:/usr/lib/jvm/java-8-oracle/jre/bin
+# default
+MAKEFILES := 
+# environment
+LANGUAGE = en_US
+# automatic
+^F = $(notdir $^)
+# environment
+OSTYPE = linux
+# environment
+TZ = America/New_York
+# automatic
+?F = $(notdir $?)
+# environment
+XDG_SEAT = seat0
+# environment
+GTK_IM_MODULE = ibus
+# environment
+XDG_CURRENT_DESKTOP = XFCE
+# environment
+HOSTTYPE = x86_64-linux
+# automatic
++F = $(notdir $+)
+# environment
+XDG_SEAT_PATH = /org/freedesktop/DisplayManager/Seat0
+# environment
+DESKTOP_SESSION = xubuntu
+# environment
+ORIGINAL_XDG_CURRENT_DESKTOP = XFCE
+# 'override' directive
+GNUMAKEFLAGS := 
+# environment
+CLUTTER_IM_MODULE = ibus
+# environment
+LOGNAME = abarber
+# environment
+XDG_VTNR = 7
+# makefile
+.DEFAULT_GOAL := compile
+# environment
+DISPLAY = :0.0
+# environment
+USER = abarber
+# environment
+DEFAULTS_PATH = /usr/share/gconf/xubuntu.default.path
+# default
+MAKE_VERSION := 4.3
+# environment
+XDG_RUNTIME_DIR = /run/user/1000
+# environment
+GPG_AGENT_INFO = /run/user/1000/gnupg/S.gpg-agent:0:1
+# environment
+COLORTERM = truecolor
+# environment
+GTK_OVERLAY_SCROLLING = 0
+# environment
+XDG_SESSION_CLASS = user
+# environment
+VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
+# environment
+HOME = /home/abarber
+# environment
+QT_IM_MODULE = ibus
+# environment
+J2SDKDIR = /usr/lib/jvm/java-8-oracle
+# environment
+ELECTRON_RUN_AS_NODE = 1
+# environment
+VSCODE_IPC_HOOK = /run/user/1000/vscode-f0cd65d9-1.71.0-main.sock
+# environment
+TERM = xterm-256color
+# environment
+XDG_SESSION_ID = c2
+# environment
+PANEL_GDK_CORE_DEVICE_EVENTS = 0
+# default
+.RECIPEPREFIX := 
+# automatic
+<F = $(notdir $<)
+# default
+SUFFIXES := 
+# environment
+VSCODE_CLI = 1
+# environment
+ELECTRON_NO_ATTACH_CONSOLE = 1
+# environment
+VTE_VERSION = 6800
+# environment
+XDG_GREETER_DATA_DIR = /var/lib/lightdm-data/abarber
+# default
+.FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell nocomment grouped-target extra-prereqs archives jobserver output-sync check-symlink load
+# environment
+XDG_MENU_PREFIX = xfce-
+# environment
+DERBY_HOME = /usr/lib/jvm/java-8-oracle/db
+# environment
+GDMSESSION = xubuntu
+# variable set hash-table stats:
+# Load=109/1024=11%, Rehash=0, Collisions=5/139=4%
+
+# Pattern-specific Variable Values
+
+# No pattern-specific variable values.
+
+# Directories
+
+# . (device 66306, inode 6209553): 14 files, no impossibilities.
+
+# 14 files, no impossibilities in 1 directories.
+
+# Implicit Rules
+
+# No implicit rules.
+
+# Files
+
+compile: radiopanel.ino
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 2):
+	arduino-cli compile -b 'esp32:esp32:esp32' .
+
+erase_flash:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 11):
+	esptool.py --chip auto -p /dev/ttyUSB0 erase_flash
+
+# Not a target:
+radiopanel.ino:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+Makefile:
+#  Implicit rule search has been done.
+#  Last modified 2022-02-03 16:40:52.464888504
+#  File has been updated.
+#  Successfully updated.
+
+upload: compile
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 5):
+	arduino-cli upload -p /dev/ttyUSB0  --fqbn esp32:esp32:esp32 radiopanel
+
+# Not a target:
+.DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# Not a target:
+all:
+#  Command line target.
+#  Implicit rule search has been done.
+ 
+#  File does not exist.
+#  File has not been updated.
+
+monitor: upload
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from 'Makefile', line 8):
+	screen /dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0 115200
+
+# files hash-table stats:
+# Load=9/1024=1%, Rehash=0, Collisions=0/22=0%
+# VPATH Search Paths
+
+# No 'vpath' search paths.
+
+# No general ('VPATH' variable) search path.
+
+# strcache buffers: 1 (0) / strings = 23 / storage = 265 B / avg = 11 B
+# current buf: size = 8162 B / used = 265 B / count = 23 / avg = 11 B
+
+# strcache performance: lookups = 34 / hit rate = 32%
+# hash-table stats:
+# Load=23/8192=0%, Rehash=0, Collisions=0/34=0%
+# Finished Make data base on Tue Oct 25 21:06:58 2022
+
+ 
