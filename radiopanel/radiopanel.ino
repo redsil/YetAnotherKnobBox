@@ -27,6 +27,9 @@ enum MODE { MODE_NONE, MODE_1, MODE_2, MODE_3, MODE_4, MODE_5, MODE_6, BRIGHTNES
 #define ENCODER2_DIR_BUTTON_OFFSET ENCODER1_VAL_BUTTON_OFFSET + 3
 #define ENCODER2_VAL_BUTTON_OFFSET ENCODER2_DIR_BUTTON_OFFSET + 2
 
+#define RELEASE_MASK  ~( (0x7 << ENCODER1_VAL_BUTTON_OFFSET) | (0x7 << ENCODER2_VAL_BUTTON_OFFSET) \
+                       | (0x7 << (ENCODER1_VAL_BUTTON_OFFSET + KNOB2_BUTTON_OFFSET) ) | (0x7 << (ENCODER2_VAL_BUTTON_OFFSET + KNOB2_BUTTON_OFFSET) ) ) 
+
 
 #define MODE_BUTTON_OFFSET NUM_BUTTONS_PER_KNOB * 2
 
@@ -36,6 +39,8 @@ DualEncoderKnob knob1(15,16,17,18,13,0);
 DualEncoderKnob knob2(19,21,22,23,12,1);
 
 PanelLed strip(LED_PIN,10);
+
+bool debug = false;
 
 int mode_button_pins[NUM_MODE_PINS] = { 33, 25, 26, 32, 27, 14 };
 char g_last_mode_pin_state = 0;
@@ -117,12 +122,12 @@ void setup(){
   BleGamepadConfiguration gp_config;
   gp_config.setAutoReport(false);
   gp_config.setWhichAxes(true,true,false,true,true,false,false,false); 
-  gp_config.setControllerType(CONTROLLER_TYPE_MULTI_AXIS);
+//  gp_config.setControllerType(CONTROLLER_TYPE_MULTI_AXIS);
   gp_config.setButtonCount(32);  
-  gp_config.setModelNumber("1");
-  gp_config.setSoftwareRevision("1.1");
-  gp_config.setSerialNumber("00001");
-  gp_config.setFirmwareRevision("1.1");
+//  gp_config.setModelNumber("1");
+//  gp_config.setSoftwareRevision("1.1");
+//  gp_config.setSerialNumber("00001");
+  gp_config.setFirmwareRevision("1.2");
   gp_config.setHardwareRevision("1.0");
   // reset rudder trim, reset aileron trim, reset elevator trim, switch knob3 modes
 
@@ -230,7 +235,7 @@ void loop(){
   
     if (current_mode >= MODE_1 && current_mode <= MODE_6) {
       if (update_controller) {
-//	      print_debug(bleGamepad);
+	      print_debug(bleGamepad);
       	if (bleGamepad.isConnected()) bleGamepad.sendReport();
       }
       if (bleGamepad.isPressed(g_button_index[KNOB1_BUTTON_OFFSET + ENCODER1_DIR_BUTTON_OFFSET]) || bleGamepad.isPressed(g_button_index[KNOB1_BUTTON_OFFSET + ENCODER2_DIR_BUTTON_OFFSET]) ||
@@ -277,6 +282,7 @@ void loop(){
 }
 
 void print_debug(BleGamepad &gp) {
+  if (!debug) return;
   Serial.printf("DEBUG Gamepad ");
   for (int i = 0; i < 32; i++) {
     if (gp.isPressed(g_button_index[i])) {
@@ -363,7 +369,6 @@ boolean process_encoder(DualEncoderKnob &knob, int gamepad_button_offset, BleGam
 //      Serial.printf("DEBUG %d: count = %d change = %d ",encoder_id,knob.getCount(encoder_id),value);
 //      Serial.println();
       gp.press(g_button_index[offset]);
-      gp.setAxes(axis_value[0],axis_value[1],axis_value[2],axis_value[3]);
       is_change = true;
     }
     offset++;
@@ -432,7 +437,10 @@ int get_mode_pin_change() {
 boolean release_buttons(BleGamepad &gp) {
   boolean found_pressed_button = false;
   for (int button = 0; button < NUM_BUTTONS; button++) {
-    if (gp.isPressed(g_button_index[button])) { 
+    // Only release buttons that aren't the encoder value buttons
+//    Serial.printf("%04x %04x",RELEASE_MASK,(1 << button));
+//    Serial.println();
+    if ( (RELEASE_MASK & (1 << button) ) && gp.isPressed(g_button_index[button])) { 
       gp.release(g_button_index[button]);
       found_pressed_button = true;
     }
@@ -441,8 +449,8 @@ boolean release_buttons(BleGamepad &gp) {
     gp.setX(0);
     gp.setY(0);
     gp.setZ(0);
-    gp.setRZ(0);
-//    print_debug(gp);
+    gp.setRX(0);
+    print_debug(gp);
   }
   return(found_pressed_button);
 }
