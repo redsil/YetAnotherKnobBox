@@ -11,7 +11,9 @@ function KnobPanel.fsuipc_send_control(control)
    return(
       function(value)
 --	 ipc.log("Sending control" .. control)
-	 ipc.control(control)
+		for i=0,value do
+			ipc.control(control)
+		end	
       end
    )
 end
